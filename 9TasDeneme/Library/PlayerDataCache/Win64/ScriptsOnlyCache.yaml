@@ -45,6 +45,8 @@ ScriptsOnlyBuild:
       Script: {instanceID: 3692}
     - Class: 115
       Script: {instanceID: 0}
+    - Class: 135
+      Script: {instanceID: 0}
     - Class: 136
       Script: {instanceID: 0}
     - Class: 157
@@ -114,7 +116,7 @@ ScriptsOnlyBuild:
     className: Shadow
   - hash:
       serializedVersion: 2
-      Hash: 1af38370a24b2c0ad56930440d0d8a65
+      Hash: a5cfdc7fbf69f25beb95171a310dbc68
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Game
@@ -414,7 +416,7 @@ ScriptsOnlyBuild:
     className: ScrollRect
   - hash:
       serializedVersion: 2
-      Hash: 11e05f8351ab720d13d1a3119c3306ef
+      Hash: 0a999b75e9dd9f292700da357c66dab4
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: DragDrop
@@ -487,4 +489,4 @@ ScriptsOnlyBuild:
   platform: 19
   scenePathNames:
   - Assets/Scenes/SampleScene.unity
-  playerPath: "C:/Users/sekov/Desktop/Yeni klas\xF6r/9TasDeneme.exe"
+  playerPath: C:/Users/sekov/Desktop/nineRock/9TasDeneme.exe

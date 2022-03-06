@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,99 +8,114 @@ public class DragDrop : MonoBehaviour
 {
     private GameObject selectedObject;
 
-    private float yPiece = 0.05f;
+    //private Transform oldPos;
+
+    private float snapDistance = 1;
+
+    private List<GameObject> oyunNesnesi;
+
+    public GameObject gameRules;
+
+    void Start()
+    {
+        oyunNesnesi = gameRules.GetComponent<GameRules>().nodes;
+        gameRules.GetComponent<GameRules>().OyunNesnesiOlustur();
+    }
 
     private void Update()
     {
         try
         {
             if (Input.GetMouseButtonDown(0))
+                MouseTiklandiginda();
+            if (Input.GetMouseButton(0))
+                MouseBasiliTutuldugunda();
+            if (Input.GetMouseButtonUp(0))
+                MouseTikiBirakildiginda();
+        }
+        catch (Exception) { }
+    }
+
+    private void MouseTiklandiginda()
+    {
+        RaycastHit hit = CastRay();
+
+        if (selectedObject == null)
+        {
+            if (hit.collider != null)
             {
-                RaycastHit hit = CastRay();
-
-                if (selectedObject == null)
+                if (hit.collider.CompareTag("Tas"))
                 {
-                    if (hit.collider.CompareTag("Tas"))
-                    {
-                        selectedObject = hit.collider.gameObject;
-
-                        Cursor.visible = false;
-                    }
+                    gameRules.GetComponent<GameRules>().GecerliHareketOlustur();
+                    selectedObject = hit.collider.gameObject;
+                    Cursor.visible = false;
                 }
             }
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                Vector3 position = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.WorldToScreenPoint(selectedObject.transform.position).z);
-                Vector3 worldPosition = Camera.main.ScreenToWorldPoint(position);
-
-                selectedObject.transform.position = new Vector3(worldPosition.x, yPiece, worldPosition.z);
-
-                selectedObject = null;
-                Cursor.visible = true;
-            }
-
-            if (selectedObject != null)
-            {
-                Vector3 position = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.WorldToScreenPoint(selectedObject.transform.position).z);
-                Vector3 worldPosition = Camera.main.ScreenToWorldPoint(position);
-                selectedObject.transform.position = new Vector3(worldPosition.x, .25f, worldPosition.z);
-            }
         }
-        catch (System.Exception)
+    }
+
+    private void MouseBasiliTutuldugunda()
+    {
+        Vector3 worldPosition;
+
+        if (selectedObject != null)
         {
+            worldPosition = FindPosition();
+            selectedObject.transform.position = new Vector3(worldPosition.x, 0.5f, worldPosition.z);
         }
+    }
+
+    private void MouseTikiBirakildiginda()
+    {
+        //string[] yuvaIndisi;
+
+        bool truePos = false;
+
+        if (selectedObject != null)
+        {
+            foreach (GameObject nesne in oyunNesnesi)
+            {
+                if (Vector3.Distance(selectedObject.transform.position, nesne.transform.position) <= snapDistance)
+                {
+                    selectedObject.transform.position = nesne.transform.position;
+                    truePos = true;
+
+                    //yuvaIndisi = nesne.name.Split(' ');
+                    //gameRules.GetComponent<GameRules>().yuvalar[Convert.ToInt32(yuvaIndisi)] = 1;
+                }
+            }
+            if (!truePos)
+            {
+                //selectedObject.transform.position = oldPos.position;
+            }
+
+            gameRules.GetComponent<GameRules>().GecerliHareketSil();
+            selectedObject = null;
+            Cursor.visible = true;
+        }
+    }
+
+    private Vector3 FindPosition()
+    {
+        Vector3 position = new Vector3(Input.mousePosition.x, 
+                                       Input.mousePosition.y, 
+                                       Camera.main.WorldToScreenPoint(selectedObject.transform.position).z);
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(position);
+        return worldPosition;
     }
 
     private RaycastHit CastRay()
     {
-        Vector3 screenMousePosFar = new Vector3(
-            Input.mousePosition.x,
-            Input.mousePosition.y,
-            Camera.main.farClipPlane);
-        Vector3 screenMousePosNear = new Vector3(
-            Input.mousePosition.x,
-            Input.mousePosition.y,
-            Camera.main.nearClipPlane);
+        Vector3 screenMousePosFar = new Vector3(Input.mousePosition.x,
+                                                Input.mousePosition.y,
+                                                Camera.main.farClipPlane);
+        Vector3 screenMousePosNear = new Vector3(Input.mousePosition.x,
+                                                 Input.mousePosition.y,
+                                                 Camera.main.nearClipPlane);
         Vector3 worldMousePosFar = Camera.main.ScreenToWorldPoint(screenMousePosFar);
         Vector3 worldMousePosNear = Camera.main.ScreenToWorldPoint(screenMousePosNear);
         RaycastHit hit;
         Physics.Raycast(worldMousePosNear, worldMousePosFar - worldMousePosNear, out hit);
-
         return hit;
     }
-
-    //public void GecerliHareketleriOlustur()
-    //{
-    //    for (int i = -9; i <= 9; i += 3)
-    //    {
-    //        for (int j = -9; j <= 9; j += 3)
-    //        {
-    //            //GecerliHareketler yerlestirildi.
-    //            if (i != 0)
-    //            {
-    //                if ((j == i || j == -i || j == 0))
-    //                {
-    //                    Instantiate(GecerliHareket, new Vector3(i, 0.13f, j), transform.rotation);
-    //                }
-    //            }
-    //            else
-    //            {
-    //                if (j == 3 || j == 6 || j == 9 || j == -3 || j == -6 || j == -9)
-    //                {
-    //                    Instantiate(GecerliHareket, new Vector3(i, 0.13f, j), transform.rotation);
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
-    //public void GecerliHareketSil()
-    //{
-    //    GameObject[] GecerliHareket = GameObject.FindGameObjectsWithTag("GecerliHareket");
-    //    foreach (GameObject i in GecerliHareket)
-    //    {
-    //        GameObject.Destroy(i);
-    //    }
-    //}
 }
