@@ -8,7 +8,7 @@ public class DragDrop : MonoBehaviour
 {
     private GameObject selectedObject;
 
-    //private Transform oldPos;
+    private GameObject oldObj;
 
     private float snapDistance = 1;
 
@@ -18,6 +18,7 @@ public class DragDrop : MonoBehaviour
 
     void Start()
     {
+        oldObj = new GameObject();
         oyunNesnesi = gameRules.GetComponent<GameRules>().nodes;
         gameRules.GetComponent<GameRules>().OyunNesnesiOlustur();
     }
@@ -47,7 +48,9 @@ public class DragDrop : MonoBehaviour
                 if (hit.collider.CompareTag("Tas"))
                 {
                     gameRules.GetComponent<GameRules>().GecerliHareketOlustur();
+                    
                     selectedObject = hit.collider.gameObject;
+                    oldObj.transform.position = selectedObject.transform.position;
                     Cursor.visible = false;
                 }
             }
@@ -67,26 +70,30 @@ public class DragDrop : MonoBehaviour
 
     private void MouseTikiBirakildiginda()
     {
-        //string[] yuvaIndisi;
+        string[] yuvaIndisi;
 
         bool truePos = false;
+
+        float mesafe;
 
         if (selectedObject != null)
         {
             foreach (GameObject nesne in oyunNesnesi)
             {
-                if (Vector3.Distance(selectedObject.transform.position, nesne.transform.position) <= snapDistance)
+                mesafe = Vector3.Distance(selectedObject.transform.position, nesne.transform.position);
+                if (mesafe <= snapDistance)
                 {
                     selectedObject.transform.position = nesne.transform.position;
-                    truePos = true;
 
-                    //yuvaIndisi = nesne.name.Split(' ');
-                    //gameRules.GetComponent<GameRules>().yuvalar[Convert.ToInt32(yuvaIndisi)] = 1;
+                    yuvaIndisi = nesne.name.Split(' ');
+                    gameRules.GetComponent<GameRules>().yuvalar[Convert.ToInt32(yuvaIndisi[1])] = 1;
+
+                    truePos = true;
                 }
             }
             if (!truePos)
             {
-                //selectedObject.transform.position = oldPos.position;
+                selectedObject.transform.position = oldObj.transform.position;
             }
 
             gameRules.GetComponent<GameRules>().GecerliHareketSil();
