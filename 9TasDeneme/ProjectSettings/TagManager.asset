@@ -11,6 +11,7 @@ TagManager:
   - YesilTas
   - Tas
   - GecerliHareket
+  - oyunNesnesi
   layers:
   - Default
   - TransparentFX
