@@ -6,12 +6,11 @@ TagManager:
   tags:
   - DikCizgi
   - YanCizgi
-  - Yuva
-  - SariTas
-  - YesilTas
-  - Tas
   - GecerliHareket
   - oyunNesnesi
+  - FirstPlayer
+  - SecondPlayer
+  - Slot
   layers:
   - Default
   - TransparentFX

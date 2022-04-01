@@ -6,36 +6,39 @@ using UnityEngine.EventSystems;
 
 public class DragDrop : MonoBehaviour
 {
-    public GameObject gecerliHareket;
+    //public GameObject gecerliHareket;
 
     private GameObject selectedObject;
     private GameObject oldPos;
 
-    private List<GameObject> nesneler = new List<GameObject>();
-    private GameObject oyunNesnesi;
+    //private float yTas = 0.13f;
 
-    private float yTas = 0.13f;
     private float snapDistance = 1.0f;
-    
-    private bool[] yuvalar;
-    private int indis;
 
-    private int[,] nesnelerPos = new int[,] { { -9, -9 }, { -9, 0 }, { -9, 9 }, { 0, -9 }, { 0, 9 }, { 9, -9 }, { 9, 0 }, { 9, 9 },
+    /*private int[,] nesnelerPos = new int[,] { { -9, -9 }, { -9, 0 }, { -9, 9 }, { 0, -9 }, { 0, 9 }, { 9, -9 }, { 9, 0 }, { 9, 9 },
                                           { -6, -6 }, { -6, 0 }, { -6, 6 }, { 0, -6 }, { 0, 6 }, { 6, -6 }, { 6, 0 }, { 6, 6 },
                                           { -3, -3 }, { -3, 0 }, { -3, 3 }, { 0, -3 }, { 0, 3 }, { 3, -3 }, { 3, 0 }, { 3, 3 } };
     private int[,] dogruPos = new int[,] { { -3, 0 }, { 0, 3 }, { 0, -3 }, { 3, 0 } };
+    */
 
-    private string siradakiOyuncu;
-    private int birinciOyuncuTasSayisi = 9;
-    private int ikinciOyuncuTasSayisi = 9;
-    private int kenardakiTasSayisi;
+    List<GameObject> slotsPos = new List<GameObject>();
+    List<GameObject> firstPlayerPiecesPos = new List<GameObject>();
+    List<GameObject> secondPlayerPiecesPos = new List<GameObject>();
+
+    List<Vector3> filledSlotsPos = new List<Vector3>();
+    List<Vector3> emptySlotsPos = new List<Vector3>();
+
+    private string nextPlayer;
+    private int turnCount;
+
 
     private void Start()
     {
-        kenardakiTasSayisi = birinciOyuncuTasSayisi + ikinciOyuncuTasSayisi;
         oldPos = new GameObject("OldPos");
-        yuvalar = new bool[24];
-        siradakiOyuncu = "YesilTas";
+        nextPlayer = "FirstPlayer";
+        turnCount = 0;
+
+        SlotsScan();
     }
 
     private void Update()
@@ -43,39 +46,42 @@ public class DragDrop : MonoBehaviour
         try
         {
             if (Input.GetMouseButtonDown(0))
-                MouseTiklandiginda();
+                MouseClicked();
             if (Input.GetMouseButton(0))
-                MouseBasiliTutuldugunda();
+                MouseHolded();
             if (Input.GetMouseButtonUp(0))
-                MouseTikiBirakildiginda();
+                MouseRelease();
         }
         catch (Exception) { }
     }
 
-    private void MouseTiklandiginda()
+    private void MouseClicked()
     {
+        PiecesScan();
         RaycastHit hit = CastRay();
 
         if (selectedObject == null)
         {
             if (hit.collider != null)
             {
-                if (hit.collider.CompareTag(siradakiOyuncu))
+                if (hit.collider.CompareTag(nextPlayer))
                 {
-                    GecerliHareketOlustur();
-                    
                     selectedObject = hit.collider.gameObject;
                     oldPos.transform.position = selectedObject.transform.position;
-                    
-                    TasinYeriniBul(selectedObject);
 
+                    filledSlotsPos.Add(selectedObject.transform.position);
+
+                    //GecerliHareketOlustur();
+                    
+                    //TasinYeriniBul(selectedObject);
+                    
                     Cursor.visible = false;
                 }
             }
         }
     }
 
-    private void MouseBasiliTutuldugunda()
+    private void MouseHolded()
     {
         Vector3 worldPosition;
 
@@ -87,19 +93,133 @@ public class DragDrop : MonoBehaviour
         }
     }
 
-    private void MouseTikiBirakildiginda()
+    private void MouseRelease()
     {
         if (selectedObject != null)
         {
-            selectedObject = MesafeHesapla(selectedObject);
+            CalculateDistance();
+
+            //selectedObject = MesafeHesapla(selectedObject);
             selectedObject = null;
-            
-            GecerliHareketSil();
+
+            //GecerliHareketSil();
+
+            PiecesPosAndSlotsPosClear();
 
             Cursor.visible = true;
         }
     }
 
+    private void CalculateDistance()
+    {
+        float distance;
+        bool isTruePos = false;
+        bool isEmpty = true;
+        GameObject obj = null;
+
+        
+
+        FindFulledSlots();
+
+        FindEmptySlots();
+
+        foreach (GameObject slot in slotsPos)
+        {
+            distance = Vector3.Distance(selectedObject.transform.position, slot.transform.position);
+            if(distance <= snapDistance)
+            {
+                obj = slot;
+
+                isTruePos = true;
+
+                if (turnCount >= firstPlayerPiecesPos.Count + secondPlayerPiecesPos.Count)
+                {
+                    isTruePos = false;
+                }
+               
+
+                foreach (Vector3 filledSlotPos in filledSlotsPos)
+                {
+                    if (slot.transform.position == filledSlotPos)
+                    {
+                        isEmpty = false;
+                    }
+                }
+            }
+        }
+
+        if (isTruePos && isEmpty && obj != null)
+        {
+            selectedObject.transform.position = obj.transform.position;
+            FindNextPlayer();
+            turnCount++;
+        }
+        else
+        {
+            selectedObject.transform.position = oldPos.transform.position;
+        }
+    }
+
+    private void FindFulledSlots()
+    {
+        for (int i = 0; i < slotsPos.Count; i++)
+        {
+            for (int j = 0; j < firstPlayerPiecesPos.Count; j++)
+            {
+                if(slotsPos[i].transform.position == firstPlayerPiecesPos[j].transform.position)
+                {
+                    filledSlotsPos.Add(slotsPos[i].transform.position);
+                }
+            }
+            for (int j = 0; j < secondPlayerPiecesPos.Count; j++)
+            {
+                if(slotsPos[i].transform.position == secondPlayerPiecesPos[j].transform.position)
+                {
+                    filledSlotsPos.Add(slotsPos[i].transform.position);
+                }
+            }
+
+        }
+    }
+
+    private void FindEmptySlots()
+    {
+        foreach (GameObject slot in slotsPos)
+        {
+            foreach (Vector3 filledSlotPos in filledSlotsPos)
+            {
+                if(slot.transform.position != filledSlotPos)
+                {
+                    emptySlotsPos.Add(slot.transform.position);
+                }
+            }
+        }
+    }
+
+    private void SlotsScan()
+    {
+        slotsPos.AddRange(GameObject.FindGameObjectsWithTag("Slot"));
+    }
+
+    private void PiecesScan()
+    {
+        firstPlayerPiecesPos.AddRange(GameObject.FindGameObjectsWithTag("FirstPlayer"));
+        secondPlayerPiecesPos.AddRange(GameObject.FindGameObjectsWithTag("SecondPlayer"));
+    }
+
+    private void PiecesPosAndSlotsPosClear()
+    {
+        firstPlayerPiecesPos.Clear();
+        secondPlayerPiecesPos.Clear();
+        filledSlotsPos.Clear();
+    }
+
+    private void FindNextPlayer()
+    {
+        nextPlayer = (nextPlayer == "FirstPlayer") ? "SecondPlayer" : "FirstPlayer";
+    }
+
+    /*
     private void TasinYeriniBul(GameObject selectedObj)
     {
         float mesafe;
@@ -150,14 +270,6 @@ public class DragDrop : MonoBehaviour
         return selectedObj;
     }
 
-    private void SiradakiOyuncuyuBul()
-    {
-        if (siradakiOyuncu == "YesilTas")
-            siradakiOyuncu = "SariTas";
-        else if (siradakiOyuncu == "SariTas")
-            siradakiOyuncu = "YesilTas";
-    }
-
     private int IndisBul(GameObject nesne)
     {
         string[] indis = nesne.name.Split(' ');
@@ -168,19 +280,22 @@ public class DragDrop : MonoBehaviour
     {
         if(kenardakiTasSayisi == 0)
         {
+            
         }
-        else
+        else if(kenardakiTasSayisi > 0)
         {
-            for (int i = 0; i < nesnelerPos.GetLength(0); i++)
+
+            TaslariTara();
+
+            for (int i = 0; i < bosYuvalarinKonumu.Length; i++)
             {
-                for (int j = 0; j < nesnelerPos.GetLength(1) - 1; j++)
-                {
-                    Instantiate(gecerliHareket, new Vector3(nesnelerPos[i, j], yTas, nesnelerPos[i, j + 1]), transform.rotation);
-                    oyunNesnesi = new GameObject("OyunNesnesi " + j + i);
-                    oyunNesnesi.tag = "oyunNesnesi";
-                    oyunNesnesi.transform.position = new Vector3(nesnelerPos[i, j], yTas, nesnelerPos[i, j + 1]);
-                    nesneler.Add(oyunNesnesi);
-                }
+                Instantiate(gecerliHareket, new Vector3(bosYuvalarinKonumu[i].transform.position.x,
+                                                        yTas,
+                                                        bosYuvalarinKonumu[i].transform.position.z), Quaternion.identity);
+                oyunNesnesi = new GameObject("OyunNesnesi " + i);
+                oyunNesnesi.tag = "oyunNesnesi";
+                oyunNesnesi.transform.position = bosYuvalarinKonumu[i].transform.position;
+                nesneler.Add(oyunNesnesi);
             }
         }
     }
@@ -195,7 +310,7 @@ public class DragDrop : MonoBehaviour
             GameObject.Destroy(oN);
         nesneler.Clear();
     }
-
+    */
     private Vector3 FindPosition()
     {
         Vector3 position = new Vector3(Input.mousePosition.x, 
