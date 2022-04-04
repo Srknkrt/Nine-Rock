@@ -15,11 +15,13 @@ public class DragDrop : MonoBehaviour
 
     private float snapDistance = 1.0f;
 
-    /*private int[,] nesnelerPos = new int[,] { { -9, -9 }, { -9, 0 }, { -9, 9 }, { 0, -9 }, { 0, 9 }, { 9, -9 }, { 9, 0 }, { 9, 9 },
+    /*
+    private int[,] nesnelerPos = new int[,] { { -9, -9 }, { -9, 0 }, { -9, 9 }, { 0, -9 }, { 0, 9 }, { 9, -9 }, { 9, 0 }, { 9, 9 },
                                           { -6, -6 }, { -6, 0 }, { -6, 6 }, { 0, -6 }, { 0, 6 }, { 6, -6 }, { 6, 0 }, { 6, 6 },
                                           { -3, -3 }, { -3, 0 }, { -3, 3 }, { 0, -3 }, { 0, 3 }, { 3, -3 }, { 3, 0 }, { 3, 3 } };
     private int[,] dogruPos = new int[,] { { -3, 0 }, { 0, 3 }, { 0, -3 }, { 3, 0 } };
     */
+    
 
     List<GameObject> slotsPos = new List<GameObject>();
     List<GameObject> firstPlayerPiecesPos = new List<GameObject>();
@@ -29,14 +31,14 @@ public class DragDrop : MonoBehaviour
     List<Vector3> emptySlotsPos = new List<Vector3>();
 
     private string nextPlayer;
-    private int turnCount;
+    //private int turnCount;
 
 
     private void Start()
     {
         oldPos = new GameObject("OldPos");
         nextPlayer = "FirstPlayer";
-        turnCount = 0;
+        //turnCount = 0;
 
         SlotsScan();
     }
@@ -51,8 +53,13 @@ public class DragDrop : MonoBehaviour
                 MouseHolded();
             if (Input.GetMouseButtonUp(0))
                 MouseRelease();
+            
         }
         catch (Exception) { }
+
+        
+
+        
     }
 
     private void MouseClicked()
@@ -131,11 +138,32 @@ public class DragDrop : MonoBehaviour
                 obj = slot;
 
                 isTruePos = true;
+                /*
+                if (turnCount < firstPlayerPiecesPos.Count + secondPlayerPiecesPos.Count)
+                {
+                    selectedObject.tag = (nextPlayer == "FirstPlayer") ? "firstP" : "secondP";
+                    isTruePos = true;
+                }
+
+
 
                 if (turnCount >= firstPlayerPiecesPos.Count + secondPlayerPiecesPos.Count)
                 {
                     isTruePos = false;
+
+                    for (int i = 0; i < nesnelerPos.GetLength(0); i++)
+                    {
+                        if(i < 8)
+                        {
+                            if (oldPos.transform.position.x == nesnelerPos[i, 0] &&
+                                oldPos.transform.position.z == nesnelerPos[i, 1])
+                            {
+                                isTruePos = true;
+                            }
+                        }
+                    }
                 }
+                */
                
 
                 foreach (Vector3 filledSlotPos in filledSlotsPos)
@@ -152,7 +180,20 @@ public class DragDrop : MonoBehaviour
         {
             selectedObject.transform.position = obj.transform.position;
             FindNextPlayer();
+            /*
             turnCount++;
+            if (turnCount == firstPlayerPiecesPos.Count + secondPlayerPiecesPos.Count)
+            {
+                foreach (GameObject i in GameObject.FindGameObjectsWithTag("firstP"))
+                {
+                    i.tag = "FirstPlayer";
+                }
+                foreach (GameObject i in GameObject.FindGameObjectsWithTag("secondP"))
+                {
+                    i.tag = "SecondPlayer";
+                }
+            }
+            */
         }
         else
         {
@@ -204,7 +245,10 @@ public class DragDrop : MonoBehaviour
     private void PiecesScan()
     {
         firstPlayerPiecesPos.AddRange(GameObject.FindGameObjectsWithTag("FirstPlayer"));
+        firstPlayerPiecesPos.AddRange(GameObject.FindGameObjectsWithTag("firstP"));
         secondPlayerPiecesPos.AddRange(GameObject.FindGameObjectsWithTag("SecondPlayer"));
+        secondPlayerPiecesPos.AddRange(GameObject.FindGameObjectsWithTag("secondP"));
+
     }
 
     private void PiecesPosAndSlotsPosClear()

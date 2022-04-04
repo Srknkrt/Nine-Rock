@@ -62,7 +62,7 @@ public class Game : MonoBehaviour
 
     private void TaslariYerlestir()
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 9; i++)
         {
             Instantiate(YesilTas, new Vector3(-12, yPiece, (i * -2) + 8), transform.rotation);
             Instantiate(SariTas, new Vector3(12, yPiece, (i * -2) + 8), transform.rotation);

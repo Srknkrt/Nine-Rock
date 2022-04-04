@@ -11,6 +11,8 @@ TagManager:
   - FirstPlayer
   - SecondPlayer
   - Slot
+  - firstP
+  - secondP
   layers:
   - Default
   - TransparentFX
